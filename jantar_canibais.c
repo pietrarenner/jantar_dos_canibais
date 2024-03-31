@@ -18,7 +18,7 @@ void *canibal(void *arg)
         if(porcoes <= 0) 
         {
             // printf("porcoes 1: %d\n", porcoes);
-            pthread_mutex_lock(&mtx_travessa_vazia);
+            // pthread_mutex_lock(&mtx_travessa_vazia);
             
             printf("id: %d\n", id);
             // printf("porcoes: %d\n", porcoes);
@@ -26,8 +26,8 @@ void *canibal(void *arg)
             sleep(1);
             travessa_vazia = 1;
 
+            // pthread_mutex_unlock(&mtx_travessa_vazia);
             pthread_mutex_unlock(&mtx_porcoes);
-            pthread_mutex_unlock(&mtx_travessa_vazia);
         } 
         else 
         {
