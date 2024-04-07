@@ -5,6 +5,8 @@
 #include <malloc.h>
 #include <semaphore.h>
 
+#include "lamport.h"
+
 pthread_mutex_t mutex; // acesso a região crítica
 volatile int *listaItens; // Lista de itens, agora um ponteiro
 volatile int *ptr_Inicio; // controla o ínicio da fila
