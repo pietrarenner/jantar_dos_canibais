@@ -1,71 +1,90 @@
-#define MAX_THREADS 10
-#define _TIMESPEC_DEFINED
-
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <malloc.h>
+#include <semaphore.h>
 
-#define THREADCOUNT 5
-pthread_mutex_t mutex;
-int listaItens[15];
-int tamanhoAtual = 0;
+pthread_mutex_t mutex; // acesso a região crítica
+volatile int *listaItens; // Lista de itens, agora um ponteiro
+volatile int *ptr_Inicio; // controla o ínicio da fila
+volatile int *ptr_Fim; // controla o final da fila
+
+sem_t empty, full; // empty: conta quantidade de posições vazias; full: conta quantidade de posições cheias
 
 typedef struct
 {
 	int data;
 	int id;
+	int tam_lista;
 } ThreadData;
 
 void adicionaItem(void *arg)
 {
-	pthread_mutex_lock(&mutex);
-
 	ThreadData *threadData = (ThreadData *)arg;
 
-	if (tamanhoAtual >= 15)
-	{
-		printf("Lista cheia\n");
-		pthread_mutex_unlock(&mutex);
-		return;
+	printf("Produtor %d adicionando item %d\n", threadData->id, threadData->data);
+
+	int pos =  ptr_Fim - listaItens;
+	listaItens[pos] = threadData->data;
+	ptr_Fim++;
+
+	if (ptr_Fim >= listaItens + threadData->tam_lista) {
+		ptr_Fim = listaItens;
 	}
 
-	printf("Produtor %d adicionando item %d\n", threadData->id, threadData->data);
-	listaItens[tamanhoAtual] = threadData->data;
-	tamanhoAtual++;
-	pthread_mutex_unlock(&mutex);
+	for (int i = 0; i < threadData->tam_lista; i++)
+	{
+		printf("%d ", listaItens[i]);
+	}
+
+	printf("\n");
+
+	printf("ptr inicio: %td\nptr fim: %td\n", ptr_Inicio - listaItens, ptr_Fim - listaItens);
+
+	sleep(1);
 }
 
 void removeItem(void *arg)
 {
-	pthread_mutex_lock(&mutex);
-
 	ThreadData *threadData = (ThreadData *)arg;
 
-	if (tamanhoAtual < 0)
-	{
-		tamanhoAtual = 0;
-		printf("Lista vazia\n");
-		pthread_mutex_unlock(&mutex);
-		return;
+	printf("Consumidor %d removendo item %d\n", threadData->id, threadData->data);
+
+	int pos =  ptr_Inicio - listaItens;
+	listaItens[pos] = 0;
+
+	ptr_Inicio++;
+
+	if (ptr_Inicio >= listaItens + threadData->tam_lista) {
+		ptr_Inicio = listaItens;
 	}
 
-	printf("Consumidor %d removendo item %d\n", threadData->id, threadData->data);
-	listaItens[tamanhoAtual] = 0;
-	tamanhoAtual--;
-	pthread_mutex_unlock(&mutex);
+	for (int i = 0; i < threadData->tam_lista; i++)
+	{
+		printf("%d ", listaItens[i]);
+	}
+	
+	printf("\n");
+
+	printf("ptr inicio: %td\nptr fim: %td\n", ptr_Inicio - listaItens, ptr_Fim - listaItens);
+
+	sleep(1);
 }
+
+
 
 void* ThreadProdutor(void *data)
 {
 	while (1)
 	{
+		ThreadData *threadData = (ThreadData *)data;
+		sem_wait(&empty); // decrementa contador do sem empty
+		pthread_mutex_lock(&mutex); // entra na região crítica
 		adicionaItem(data);
-		printf("Tamanho atual: %d\n", tamanhoAtual);
-
-		struct timespec ts = {1, 0}; // 1 segundo
-        nanosleep(&ts, NULL);
+		pthread_mutex_unlock(&mutex);
+		sem_post(&full); // incrementa contador do semáforo full
+		
 	}
 
 	return 0;
@@ -75,11 +94,12 @@ void* ThreadConsumidor(void *data)
 {
 	while (1)
 	{
+		ThreadData *threadData = (ThreadData *)data;
+		sem_wait(&full); // decrementar contador do full
+		pthread_mutex_lock(&mutex); // entrar na região crítica
 		removeItem(data);
-		printf("Tamanho atual: %d\n", tamanhoAtual);
-
-		struct timespec ts = {1, 0}; // 1 segundo
-        nanosleep(&ts, NULL);
+		pthread_mutex_unlock(&mutex);
+		sem_post(&empty);		
 	}
 
 	return 0;
@@ -87,15 +107,32 @@ void* ThreadConsumidor(void *data)
 
 int main(int argc, char **argv)
 {
+	if (argc != 3) {
+        printf("para rodar o código use: %s <tam_lista> <qtd_threads>\n", argv[0]);
+        return 1;
+    }
+
+    int tam_lista = atoi(argv[1]); // tamanho da lista
+	int qtd_threads = atoi(argv[2]); // quantidade de threads
+
+	listaItens = (int *)malloc(tam_lista * sizeof(int)); // Aloca a lista de itens
+
+	ptr_Inicio = listaItens;
+	ptr_Fim = listaItens;
+
+	sem_init(&empty, 0, tam_lista);
+	sem_init(&full, 0, 0);
+
     pthread_mutex_init(&mutex, NULL);
-	pthread_t thread[THREADCOUNT];
+	pthread_t thread[qtd_threads];
 
-	ThreadData threadData[THREADCOUNT];
+	ThreadData threadData[qtd_threads];
 
-	for (int i = 0; i < THREADCOUNT; i++)
+	for (int i = 0; i < qtd_threads; i++)
 	{
-		threadData[i].data = 5;
-    	threadData[i].id = i;
+		threadData[i].data = i + 1; // item que ele tá passando (vai adicionar na lista)
+    	threadData[i].id = i; // id da thread
+		threadData[i].tam_lista = tam_lista;
 
 		if (i % 2 == 0)
 		{
@@ -109,10 +146,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-    for (int i = 0; i < THREADCOUNT; i++)
+    for (int i = 0; i < qtd_threads; i++)
     {
         pthread_join(thread[i], NULL);
     }
-
-    pthread_mutex_destroy(&mutex);
 }

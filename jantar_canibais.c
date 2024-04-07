@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     int M = atoi(argv[2]); // Capacidade máxima da travessa
 
     sem_init(&cozinhando, 0, 0);
-    sem_init(&enchendo, 0, 0); // pode substituir pelo nosso mutex?
+    sem_init(&enchendo, 0, 0); // pode substituir pelo nosso mutex? NÃO
     sem_init(&comida, 0, M); 
 
     pthread_t canibais[N];
