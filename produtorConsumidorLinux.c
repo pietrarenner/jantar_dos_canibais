@@ -7,7 +7,7 @@
 
 #include "lamport.h"
 
-// pthread_mutex_t mutex; // acesso a região crítica
+pthread_mutex_t mutex; // acesso a região crítica
 volatile int *listaItens; // Lista de itens, agora um ponteiro
 volatile int *ptr_Inicio; // controla o ínicio da fila
 volatile int *ptr_Fim; // controla o final da fila
@@ -82,11 +82,11 @@ void* ThreadProdutor(void *data)
 	{
 		ThreadData *threadData = (ThreadData *)data;
 		sem_wait(&empty); // decrementa contador do sem empty
-		lock(threadData->id);	
-		// pthread_mutex_lock(&mutex); // entra na região crítica
+		// lock(threadData->id);	
+		pthread_mutex_lock(&mutex); // entra na região crítica
 		adicionaItem(data);
-		// pthread_mutex_unlock(&mutex);
-		unlock(threadData->id);
+		pthread_mutex_unlock(&mutex);
+		// unlock(threadData->id);
 		sem_post(&full); // incrementa contador do semáforo full
 		
 	}
@@ -100,11 +100,11 @@ void* ThreadConsumidor(void *data)
 	{
 		ThreadData *threadData = (ThreadData *)data;
 		sem_wait(&full); // decrementar contador do full
-		lock(threadData->id);	
-		//pthread_mutex_lock(&mutex); // entrar na região crítica
+		// lock(threadData->id);	
+		pthread_mutex_lock(&mutex); // entrar na região crítica
 		removeItem(data);
-		//pthread_mutex_unlock(&mutex);
-		unlock(threadData->id);	
+		pthread_mutex_unlock(&mutex);
+		// unlock(threadData->id);	
 		sem_post(&empty);		
 	}
 
@@ -129,8 +129,8 @@ int main(int argc, char **argv)
 	sem_init(&empty, 0, tam_lista);
 	sem_init(&full, 0, 0);
 
-    // pthread_mutex_init(&mutex, NULL);
-	initialize_mutex(qtd_threads);
+    pthread_mutex_init(&mutex, NULL);
+	// initialize_mutex(qtd_threads);
 	pthread_t thread[qtd_threads];
 
 	ThreadData threadData[qtd_threads];

@@ -20,26 +20,27 @@ int max()
     return(r);
 }
 
-void initialize_mutex(int qtd_threads)
+void initialize_mutex(int qtd)
 {
+    qtd_threads = qtd;
     entering = (bool *)malloc(qtd_threads * sizeof(bool));
     number = (int *)malloc(qtd_threads * sizeof(int));
+    
+    // printf("entering: ");
+    // for (int i = 0; i < qtd_threads; i++)
+	// {
+    //     entering[i] = false; 
+	// 	printf("%d ", entering[i]);
+	// }
+    // printf("\n");
 
-    printf("entering: ");
-    for (int i = 0; i < qtd_threads; i++)
-	{
-        entering[i] = false; 
-		printf("%d ", entering[i]);
-	}
-    printf("\n");
-
-    printf("number: ");
-    for (int i = 0; i < qtd_threads; i++)
-	{
-        number[i] = 0; 
-		printf("%d ", number[i]);
-	}
-    printf("\n");
+    // printf("number: ");
+    // for (int i = 0; i < qtd_threads; i++)
+	// {
+    //     number[i] = 0; 
+	// 	printf("%d ", number[i]);
+	// }
+    // printf("\n");
 }
 
 bool compare(int i, int id)
@@ -52,13 +53,13 @@ bool compare(int i, int id)
 
 void lock(int id)
 {
-    printf("%d \n", id);
+    // printf("%d \n", id);
     entering[id] = true;
-    printf("%d \n", entering[id]);
+    // printf("%d \n", entering[id]);
     number[id] = 1 + max();
-    printf("%d \n", number[id]);
+    // printf("%d \n", number[id]);
     entering[id] = false;
-    printf("%d \n", entering[id]);
+    // printf("%d \n", entering[id]);
 
     for(int i = 0; i < qtd_threads; i++) 
     {

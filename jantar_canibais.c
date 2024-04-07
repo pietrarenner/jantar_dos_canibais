@@ -4,9 +4,11 @@
 #include <unistd.h>
 #include <semaphore.h>
 
+#include "lamport.h"
+
 sem_t cozinhando, enchendo, comida;
-pthread_mutex_t protege_porcoes;
-// pq tem que ser volatile?
+// pthread_mutex_t protege_porcoes;
+
 volatile int porcoes = 0; 
 
 void *chama_cozinheiro(void *arg)
@@ -19,13 +21,13 @@ void *come(void *arg)
 {
     int id = *((int *) arg);
     printf("o canibal %d está comendo\n", id);
-    sleep(2);
+    sleep(1);
 }
 
 void *enche_travessa()
 {
     printf("o cozinheiro está enchendo a travessa\n");
-    sleep(2);
+    sleep(1);
 }
 
 void *canibal(void *arg) 
@@ -34,7 +36,8 @@ void *canibal(void *arg)
     while(1)
     {
         sem_wait(&comida);
-        pthread_mutex_lock(&protege_porcoes);
+        // pthread_mutex_lock(&protege_porcoes);
+        lock(id);
         porcoes--;
         come(&id);
         if(porcoes == 0) 
@@ -42,7 +45,8 @@ void *canibal(void *arg)
             sem_post(&cozinhando);
             sem_wait(&enchendo);
         }
-        pthread_mutex_unlock(&protege_porcoes);
+        // pthread_mutex_unlock(&protege_porcoes);
+        unlock(id);
     }
 }
 
@@ -73,14 +77,15 @@ int main(int argc, char *argv[])
     int M = atoi(argv[2]); // Capacidade máxima da travessa
 
     sem_init(&cozinhando, 0, 0);
-    sem_init(&enchendo, 0, 0); // pode substituir pelo nosso mutex? NÃO
+    sem_init(&enchendo, 0, 0); 
     sem_init(&comida, 0, M); 
 
     pthread_t canibais[N];
     pthread_t cozinheiro = 0; 
     porcoes = M; 
 
-    pthread_mutex_init(&protege_porcoes, NULL);
+    // pthread_mutex_init(&protege_porcoes, NULL);
+    initialize_mutex(N+1);
 
     int *novo_m = (int *) malloc(sizeof(int));
     *novo_m = M; 
