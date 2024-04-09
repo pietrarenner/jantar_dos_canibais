@@ -52,11 +52,11 @@ void removeItem(void *arg)
 {
 	ThreadData *threadData = (ThreadData *)arg;
 
-	printf("Consumidor %d removendo item %d\n", threadData->id, threadData->data);
-
 	int pos =  ptr_Inicio - listaItens;
-	listaItens[pos] = 0;
 
+	printf("Consumidor %d removendo item %d\n", threadData->id, listaItens[pos]);
+
+	listaItens[pos] = 0;
 	ptr_Inicio++;
 
 	if (ptr_Inicio >= listaItens + threadData->tam_lista) {
