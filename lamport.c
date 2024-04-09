@@ -4,11 +4,17 @@
 #include "lamport.h"
 #include <stdlib.h>
 
-volatile bool *entering;
-volatile int *number;
+// volatile bool *entering;
+// volatile int *number;
 int qtd_threads;
 
-int max()
+// struct LamportMutex
+// {
+//     volatile bool *entering;
+//     volatile int *number;
+// };
+
+int max(volatile int *number)
 {
     int r, x;
 
@@ -20,30 +26,33 @@ int max()
     return(r);
 }
 
-void initialize_mutex(int qtd)
+void initialize_mutex(LamportMutex *mutex, int qtd)
+// void initialize_mutex(Mutex *mutex)
 {
     qtd_threads = qtd;
-    entering = (bool *)malloc(qtd_threads * sizeof(bool));
-    number = (int *)malloc(qtd_threads * sizeof(int));
+    mutex->entering = (bool *)malloc(qtd_threads * sizeof(bool));
+    mutex->number = (int *)malloc(qtd_threads * sizeof(int));
+    // entering = (bool *)malloc(qtd_threads * sizeof(bool));
+    // number = (int *)malloc(qtd_threads * sizeof(int));
     
     // printf("entering: ");
     // for (int i = 0; i < qtd_threads; i++)
 	// {
-    //     entering[i] = false; 
-	// 	printf("%d ", entering[i]);
+    //     mutex->entering[i] = false; 
+	// 	printf("%d ", mutex->entering[i]);
 	// }
     // printf("\n");
 
     // printf("number: ");
     // for (int i = 0; i < qtd_threads; i++)
 	// {
-    //     number[i] = 0; 
-	// 	printf("%d ", number[i]);
+    //     mutex->number[i] = 0; 
+	// 	printf("%d ", mutex->number[i]);
 	// }
     // printf("\n");
 }
 
-bool compare(int i, int id)
+bool compare(volatile int *number, int i, int id)
 {
     if (number[i] < number[id]) return true;
     if (number[i] == number[id] && i < id) return true;
@@ -51,28 +60,36 @@ bool compare(int i, int id)
     return false;
 }
 
-void lock(int id)
+// void lock(int id)
+void lock(LamportMutex *mutex, int id)
 {
     // printf("%d \n", id);
-    entering[id] = true;
+    // entering[id] = true;
+    mutex->entering[id] = true;
     // printf("%d \n", entering[id]);
-    number[id] = 1 + max();
+    mutex->number[id] = 1 + max(mutex->number);
+    // number[id] = 1 + max();
     // printf("%d \n", number[id]);
-    entering[id] = false;
+    mutex->entering[id] = false;
+    // entering[id] = false;
     // printf("%d \n", entering[id]);
 
     for(int i = 0; i < qtd_threads; i++) 
     {
         // esperando até a thread i receber seu ticket
-        while(entering[i] == true);
+        while(mutex->entering[i] == true);
+        // while(entering[i] == true);
         // esperar outras threads com número menor ou igual que tenham prioridade maior terminem seu trabalho
-        while((number[i] != 0) && compare(i, id));
+        // while((number[i] != 0) && compare(i, id));
+        while((mutex->number[i] != 0) && compare(mutex->number, i, id));
     }
 }
 
-void unlock(int id)
+// void unlock(int id)
+void unlock(LamportMutex *mutex, int id)
 {
-    number[id] = 0;
+    // number[id] = 0;
+    mutex->number[id] = 0;
 }
 
 // int main(int argc, char **argv)

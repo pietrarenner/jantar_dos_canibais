@@ -3,16 +3,22 @@
 
 #include <stdbool.h>
 
-extern volatile bool *entering;
-extern volatile int *number;
+// extern volatile bool *entering;
+// extern volatile int *number;
 extern int qtd_threads;
+
+typedef struct 
+{
+    volatile bool *entering;
+    volatile int *number;
+} LamportMutex;
 
 // Function declaration
 
-int max();
-void lock(int id);
-void unlock(int id);
-void initialize_mutex(int qtd_threads);
-bool compare(int i, int id);
+int max(volatile int *number);
+void lock(LamportMutex *mutex, int id);
+void unlock(LamportMutex *mutex, int id);
+void initialize_mutex(LamportMutex *mutex, int qtd_threads);
+bool compare(volatile int *number, int i, int id);
 
 #endif // lamport

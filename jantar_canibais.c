@@ -7,6 +7,7 @@
 #include "lamport.h"
 
 sem_t cozinhando, enchendo, comida;
+LamportMutex *mutex;
 // pthread_mutex_t protege_porcoes;
 
 volatile int porcoes = 0; 
@@ -37,7 +38,7 @@ void *canibal(void *arg)
     {
         sem_wait(&comida);
         // pthread_mutex_lock(&protege_porcoes);
-        lock(id);
+        lock(mutex, id);
         porcoes--;
         come(&id);
         if(porcoes == 0) 
@@ -46,7 +47,7 @@ void *canibal(void *arg)
             sem_wait(&enchendo);
         }
         // pthread_mutex_unlock(&protege_porcoes);
-        unlock(id);
+        unlock(mutex, id);
     }
 }
 
@@ -85,7 +86,8 @@ int main(int argc, char *argv[])
     porcoes = M; 
 
     // pthread_mutex_init(&protege_porcoes, NULL);
-    initialize_mutex(N+1);
+    mutex = malloc(sizeof(LamportMutex));
+    initialize_mutex(mutex, N+1);
 
     int *novo_m = (int *) malloc(sizeof(int));
     *novo_m = M; 
@@ -103,6 +105,8 @@ int main(int argc, char *argv[])
         pthread_join(canibais[i], NULL);
     }
     pthread_join(cozinheiro, NULL);
+
+    free(mutex);
 
     pthread_exit(NULL);
 }

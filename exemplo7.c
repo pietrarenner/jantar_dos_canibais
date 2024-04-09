@@ -38,12 +38,10 @@ void *task1(void *arg)
 	printf("task 1\n");
 
 //	pthread_mutex_lock(&mtx);
-	lock(id);	
 	for (int i = 0; i < ITERATIONS; i++) {
 		val = ptr_resource->getval(ptr_resource);
 		ptr_resource->setval(ptr_resource, ++val);
 	}
-	unlock(id);
 //	pthread_mutex_unlock(&mtx);
 }
 
@@ -57,12 +55,10 @@ void *task2(void *arg)
 	printf("task 2\n");
 
 //	pthread_mutex_lock(&mtx);	
-	lock(id);	
 	for (int i = 0; i < ITERATIONS; i++) {
 		val = ptr_resource->getval(ptr_resource);
 		ptr_resource->setval(ptr_resource, ++val);
 	}
-	unlock(id);	
 //	pthread_mutex_unlock(&mtx);
 }
 
@@ -76,12 +72,10 @@ void *task3(void *arg)
 	printf("task 3\n");
 
 //	pthread_mutex_lock(&mtx);
-	lock(id);	
 	for (int i = 0; i < ITERATIONS; i++) {
 		val = ptr_resource->getval(ptr_resource);
 		ptr_resource->setval(ptr_resource, ++val);
 	}
-	unlock(id);
 //	pthread_mutex_unlock(&mtx);
 }
 
@@ -97,7 +91,6 @@ int main(int argc, char *argv[])
 	int thread_ids[3] = {0, 1, 2};
 
 	// pthread_mutex_init(&mtx, NULL);
-	initialize_mutex(3);
 
 	// int *id = (int *) malloc(sizeof(int));
     // *id = i + 1;
