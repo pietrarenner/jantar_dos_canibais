@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <malloc.h>
 #include <semaphore.h>
+#include <time.h>
 
 #include "lamport.h"
 
@@ -45,7 +46,7 @@ void adicionaItem(void *arg)
 
 	printf("ptr inicio: %td\nptr fim: %td\n", ptr_Inicio - listaItens, ptr_Fim - listaItens);
 
-	sleep(1);
+	// usleep(200000);
 }
 
 void removeItem(void *arg)
@@ -72,7 +73,7 @@ void removeItem(void *arg)
 
 	printf("ptr inicio: %td\nptr fim: %td\n", ptr_Inicio - listaItens, ptr_Fim - listaItens);
 
-	sleep(1);
+	// usleep(200000);
 }
 
 
@@ -82,6 +83,7 @@ void* ThreadProdutor(void *data)
 	while (1)
 	{
 		ThreadData *threadData = (ThreadData *)data;
+		usleep((random() % 10) * 100000);
 		sem_wait(&empty); // decrementa contador do sem empty
 		lock(mutex, threadData->id);	
 		// pthread_mutex_lock(&mutex); // entra na região crítica
