@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 
-// extern volatile bool *entering;
-// extern volatile int *number;
 extern int qtd_threads;
 
 typedef struct 

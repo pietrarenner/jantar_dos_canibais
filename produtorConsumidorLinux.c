@@ -8,7 +8,6 @@
 
 #include "lamport.h"
 
-// pthread_mutex_t mutex; // acesso a região crítica
 LamportMutex *mutex;
 volatile int *listaItens; // Lista de itens, agora um ponteiro
 volatile int *ptr_Inicio; // controla o ínicio da fila
@@ -85,10 +84,8 @@ void* ThreadProdutor(void *data)
 		ThreadData *threadData = (ThreadData *)data;
 		usleep((random() % 10) * 100000);
 		sem_wait(&empty); // decrementa contador do sem empty
-		lock(mutex, threadData->id);	
-		// pthread_mutex_lock(&mutex); // entra na região crítica
+		lock(mutex, threadData->id); // entra na região crítica
 		adicionaItem(data);
-		// pthread_mutex_unlock(&mutex);
 		unlock(mutex, threadData->id);
 		sem_post(&full); // incrementa contador do semáforo full
 	}
@@ -102,10 +99,8 @@ void* ThreadConsumidor(void *data)
 	{
 		ThreadData *threadData = (ThreadData *)data;
 		sem_wait(&full); // decrementar contador do full
-		lock(mutex, threadData->id);	
-		// pthread_mutex_lock(&mutex); // entrar na região crítica
+		lock(mutex, threadData->id); // entrar na região crítica
 		removeItem(data);
-		// pthread_mutex_unlock(&mutex);
 		unlock(mutex, threadData->id);	
 		sem_post(&empty);		
 	}
@@ -131,7 +126,6 @@ int main(int argc, char **argv)
 	sem_init(&empty, 0, tam_lista);
 	sem_init(&full, 0, 0);
 
-    // pthread_mutex_init(&mutex, NULL);
 	mutex = malloc(sizeof(LamportMutex));
 	initialize_mutex(mutex, qtd_threads);
 	pthread_t thread[qtd_threads];
